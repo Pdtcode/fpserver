@@ -35,6 +35,7 @@ const collectionsToFetch = [
   "everfyre-genesis",
   "meowniverse-meowtizen",
   "official-skyverse",
+  "kasagi-supernova",
   "gridcraft-genesis-identities",
   "gridcraft-network-golden-tickets",
   "nucyber",
@@ -45,7 +46,7 @@ const collectionsToFetch = [
   "on-the-edge-of-oblivion",
   "distortion-ordinal-claim-pass",
   "trainersgen1",
-  "digital-doka-gen-1",
+  "digital-doka-gen1",
   "imaginary-rides"
   
   // Add more collection slugs as needed
@@ -86,13 +87,13 @@ async function fetchDataAndUpdateCollections() {
       const nftCollection = client.db("v1").collection("nft");
 
       // Use the slug as the filter to identify the specific document to update
-      const filter = { slug: collectionSlug };
+      const filter = { _id: collectionSlug }; // Use the collectionSlug as the _id
       const updateDoc = {
-        $set: { floorprice: floorPrice },
+        $set: { [collectionSlug]: [{ floorprice: floorPrice, count: 1 }] }, // Update the document structure
       };
 
-      // Update the document in the collection
-      await nftCollection.updateOne(filter, updateDoc);
+      // Update the document in the collection or insert it if it doesn't exist
+      const result = await nftCollection.updateOne(filter, updateDoc, { upsert: true });
 
       console.log(`Floor price for collection ${collectionSlug} updated in the database.`);
     }
@@ -102,8 +103,9 @@ async function fetchDataAndUpdateCollections() {
 }
 
 
+
 // Schedule the fetchDataAndUpdateCollections function to run periodically
-const updateInterval = 3600000; // 1 hour
+const updateInterval = 10000; //  10s
 
 setInterval(fetchDataAndUpdateCollections, updateInterval);
 
