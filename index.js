@@ -53,13 +53,25 @@ const collectionsToFetch = [
 ];
 
 const apiKey = process.env.API_KEY;
-const requestsPerSecond = 2;
+const requestsPerSecond = 1;
 const interval = 1000 / requestsPerSecond; // Convert requests per second to milliseconds
 
 let tokens = requestsPerSecond; // Initialize tokens
 const tokenBucket = setInterval(() => {
   tokens = Math.min(tokens + 1, requestsPerSecond);
 }, interval);
+
+async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    // Implement retry logic here, with a delay between retries
+    setTimeout(connectToMongoDB, 5000); // Retry after 5 seconds
+  }
+}
+
 
 async function fetchDataAndUpdateCollections() {
   try {
@@ -99,13 +111,14 @@ async function fetchDataAndUpdateCollections() {
     }
   } catch (error) {
     console.error("Error fetching or updating data:", error);
+    connectToMongoDB
   }
 }
 
 
 
 // Schedule the fetchDataAndUpdateCollections function to run periodically
-const updateInterval = 10000; //  10s
+const updateInterval = 60000; //  1 min
 
 setInterval(fetchDataAndUpdateCollections, updateInterval);
 
